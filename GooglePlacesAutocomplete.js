@@ -475,10 +475,12 @@ export default class GooglePlacesAutocomplete extends Component {
               const results = this.props.nearbyPlacesAPI === 'GoogleReverseGeocoding'
                 ? this._filterResultsByTypes(responseJSON.predictions, this.props.filterReverseGeocodingByTypes)
                 : responseJSON.predictions;
-
-              this._results = results;
+              
+              // check to limit results
+              this._results = this.props.maxLength ? results.slice(0, this.props.maxLength) : results;
+              
               this.setState({
-                dataSource: this.buildRowsFromResults(results),
+                dataSource: this.buildRowsFromResults(this._results),
               });
             }
           }
@@ -679,6 +681,7 @@ export default class GooglePlacesAutocomplete extends Component {
     if ((this.state.text !== '' || this.props.predefinedPlaces.length || this.props.currentLocation === true) && this.state.listViewDisplayed === true) {
       return (
         <FlatList
+          contentContainerStyle={this.props.styles.contentContainerStyle}
           scrollEnabled={!this.props.disableScroll}
           style={[this.props.suppressDefaultStyles ? {} : defaultStyles.listView, this.props.styles.listView]}
           data={this.state.dataSource}
@@ -689,7 +692,7 @@ export default class GooglePlacesAutocomplete extends Component {
           ListHeaderComponent={this.props.renderHeaderComponent && this.props.renderHeaderComponent(this.state.text)}
           ListFooterComponent={this._renderPoweredLogo}
           {...this.props}
-        />
+          />
       );
     }
 
@@ -734,7 +737,7 @@ export default class GooglePlacesAutocomplete extends Component {
             {this._renderRightButton()}
           </View>
         }
-        {this._getFlatList()}
+          {this._getFlatList()}
         {this.props.children}
       </View>
     );
@@ -750,6 +753,7 @@ GooglePlacesAutocomplete.propTypes = {
   onPress: PropTypes.func,
   onNotFound: PropTypes.func,
   onFail: PropTypes.func,
+  maxLength: PropTypes.number,
   minLength: PropTypes.number,
   fetchDetails: PropTypes.bool,
   autoFocus: PropTypes.bool,
